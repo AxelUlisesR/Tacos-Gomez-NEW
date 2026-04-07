@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Tacos_Gomez_NEW.BlankPage1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Tacos_Gomez_NEW"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Loaded="Page_Loaded">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <NavigationView x:Name="NavMenu" 
+                        PaneTitle="Tacos Gomez"
+                        IsBackButtonVisible="Collapsed"
+                        ItemInvoked="NavMenu_ItemInvoked">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItemHeader Content="Catálogos"/>
+                <NavigationViewItem x:Name="itemProductos" Content="Productos" Icon="Shop" Tag="productos"/>
+                <NavigationViewItem x:Name="itemEmpleados" Content="Empleados" Icon="People" Tag="empleados"/>
+                <NavigationViewItem x:Name="itemClientes" Content="Clientes" Icon="Contact" Tag="clientes"/>
+
+                <NavigationViewItemSeparator/>
+
+                <NavigationViewItemHeader Content="Movimientos"/>
+                <NavigationViewItem x:Name="itemVentas" Content="Registrar Ventas" Icon="Tag" Tag="ventas"/>
+
+                <NavigationViewItemHeader Content="Análisis"/>
+                <NavigationViewItem x:Name="itemReportes" Content="Reportes" Icon="FourBars" Tag="reportes"/>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Content="Salir" Icon="Back" Tag="salir"/>
+            </NavigationView.FooterMenuItems>
+
+            <Grid Padding="24">
+                <StackPanel x:Name="WelcomePanel" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                    <TextBlock Text="🌮" FontSize="72" HorizontalAlignment="Center"/>
+                    <TextBlock Text="¡Bienvenido a Tacos Gomez!" FontSize="28" FontWeight="Bold"/>
+                    <TextBlock x:Name="txtRolActual" Opacity="0.6" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <Frame x:Name="ContentFrame"/>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Page>

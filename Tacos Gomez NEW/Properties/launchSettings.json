@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Tacos Gomez NEW (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Tacos Gomez NEW (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

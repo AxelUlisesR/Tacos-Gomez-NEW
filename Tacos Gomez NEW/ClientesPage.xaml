@@ -1,0 +1,71 @@
+<Page
+    x:Class="Tacos_Gomez_NEW.ClientesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Loaded="Page_Loaded">
+
+    <Grid Padding="30" RowDefinitions="Auto, *" ColumnDefinitions="350, *">
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="15" Margin="0,0,0,30">
+            <SymbolIcon Symbol="People" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
+            <TextBlock Text="Administración de Clientes" FontSize="28" FontWeight="Bold"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="15" Margin="0,0,30,0">
+            <TextBox x:Name="txtId" Header="ID Cliente" IsReadOnly="True" Opacity="0.7"/>
+            <TextBox x:Name="txtNombre" Header="Nombre Completo" MaxLength="70"/>
+
+            <Grid ColumnDefinitions="*, 80" ColumnSpacing="10">
+                <AutoSuggestBox x:Name="asbDireccion" Grid.Column="0"
+                                Header="Calle (Sayula)" 
+                                PlaceholderText="Buscar calle..."
+                                UpdateTextOnSelect="True"
+                                TextChanged="asbDireccion_TextChanged"
+                                SuggestionChosen="asbDireccion_SuggestionChosen"
+                                QueryIcon="Find"/>
+                <TextBox x:Name="txtNumero" Grid.Column="1" Header="Núm." MaxLength="10" PlaceholderText="Ext."/>
+            </Grid>
+
+            <TextBox x:Name="txtTelefono" Header="Teléfono" MaxLength="13"/>
+
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,20,0,0">
+                <Button x:Name="btnNuevo" Content="Nuevo" Click="btnNuevo_Click" Style="{StaticResource AccentButtonStyle}" Width="80"/>
+                <Button x:Name="btnGrabar" Content="Grabar" Click="btnGrabar_Click" Width="80"/>
+                <Button x:Name="btnModificar" Content="Editar" Click="btnModificar_Click" Width="80"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="btnBusca" Content="Buscar ID" Click="btnBusca_Click" Width="125"/>
+                <Button x:Name="btnCancelar" Content="Cancelar" Click="btnCancelar_Click" Width="125"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Border Grid.Row="1" Grid.Column="1" Background="{ThemeResource SystemControlBackgroundAltHighBrush}" CornerRadius="8" Padding="10">
+            <ListView x:Name="lvClientes" SelectionChanged="lvClientes_SelectionChanged">
+                <ListView.HeaderTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="50, 180, *, 120" Padding="12,10,12,10" Background="Black" CornerRadius="8,8,0,0">
+                            <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Grid.Column="1" Text="Nombre" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Grid.Column="2" Text="Dirección" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Grid.Column="3" Text="Teléfono" FontWeight="Bold" Foreground="White"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.HeaderTemplate>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="50, 180, *, 120" Height="45">
+                            <TextBlock Grid.Column="0" Text="{Binding Id}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Nombre}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock Text="{Binding Direccion}" TextTrimming="CharacterEllipsis" MaxWidth="180"/>
+                                <TextBlock Text=" #" Margin="2,0,0,0"/>
+                                <TextBlock Text="{Binding Numero}"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="3" Text="{Binding Telefono}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Border>
+    </Grid>
+</Page>
