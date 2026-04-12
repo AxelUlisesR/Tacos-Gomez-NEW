@@ -16,15 +16,24 @@
                 <Border Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}" Padding="15" CornerRadius="8">
                     <StackPanel Spacing="12">
                         <TextBlock Text="Datos del Cliente" FontWeight="Bold" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
-                        <ComboBox x:Name="cbCliente" Header="Nombre" HorizontalAlignment="Stretch" SelectionChanged="cbCliente_SelectionChanged"/>
-                        <TextBox x:Name="txtDireccion" Header="Dirección" IsReadOnly="True" Opacity="0.7"/>
+                        <AutoSuggestBox x:Name="asbCliente" Header="Nombre" PlaceholderText="Buscar cliente..." UpdateTextOnSelect="True"
+                                        TextChanged="asbCliente_TextChanged" SuggestionChosen="asbCliente_SuggestionChosen" HorizontalAlignment="Stretch"/>
+                        <TextBox x:Name="txtDireccion" Header="Calle / Colonia" IsReadOnly="True" Opacity="0.7"/>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtNumCasa" Header="Núm. Casa" IsReadOnly="True" Opacity="0.7"/>
+                            <TextBox x:Name="txtTelefono" Grid.Column="1" Header="Teléfono" IsReadOnly="True" Opacity="0.7"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
                 <Border Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}" Padding="15" CornerRadius="8">
                     <StackPanel Spacing="12">
                         <TextBlock Text="Atendido por" FontWeight="Bold" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
-                        <ComboBox x:Name="cbEmpleado" Header="Seleccionar Empleado" HorizontalAlignment="Stretch" SelectionChanged="cbEmpleado_SelectionChanged"/>
+                        <ComboBox x:Name="cbEmpleado" Header="Empleado" HorizontalAlignment="Stretch" SelectionChanged="cbEmpleado_SelectionChanged"/>
                         <TextBox x:Name="txtRol" Header="Puesto" IsReadOnly="True" Opacity="0.7"/>
                     </StackPanel>
                 </Border>
@@ -32,40 +41,27 @@
                 <Border Background="{ThemeResource SystemControlBackgroundAltMediumHighBrush}" Padding="15" CornerRadius="8">
                     <StackPanel Spacing="15">
                         <TextBlock Text="Añadir al Pedido" FontWeight="Bold" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="Producto" FontSize="12" Opacity="0.8"/>
-                            <ComboBox x:Name="cboProducto" HorizontalAlignment="Stretch" SelectionChanged="cboProducto_SelectionChanged"/>
-                        </StackPanel>
-
+                        <ComboBox x:Name="cboProducto" Header="Producto" HorizontalAlignment="Stretch" SelectionChanged="cboProducto_SelectionChanged"/>
                         <Grid ColumnSpacing="15">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Precio" FontSize="12" Opacity="0.8" Margin="0,0,0,5"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Cantidad" FontSize="12" Opacity="0.8" Margin="0,0,0,5"/>
-                            <NumberBox x:Name="nbPrecio" Grid.Row="1" Grid.Column="0" Value="0" IsEnabled="False" SpinButtonPlacementMode="Hidden"/>
-                            <NumberBox x:Name="nbCantidad" Grid.Row="1" Grid.Column="1" Value="1" Minimum="1" Maximum="20" SpinButtonPlacementMode="Inline"/>
+                            <NumberBox x:Name="nbPrecio" Header="Precio" Value="0" IsEnabled="False" SpinButtonPlacementMode="Hidden"/>
+                            <NumberBox x:Name="nbCantidad" Header="Cantidad" Grid.Column="1" Value="1" Minimum="1" SpinButtonPlacementMode="Inline"/>
                         </Grid>
-
-                        <Button x:Name="cmdAceptar" Content="Agregar al Plato" Click="cmdAceptar_Click" 
-                                HorizontalAlignment="Stretch" Height="42" Margin="0,10,0,0" Style="{StaticResource AccentButtonStyle}"/>
+                        <Button x:Name="cmdAceptar" Content="Agregar al Plato" Click="cmdAceptar_Click" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
 
         <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="*, Auto, Auto" Margin="10,0,0,0">
-
             <Border Grid.Row="0" Background="{ThemeResource SystemControlBackgroundAltHighBrush}" CornerRadius="8" Padding="10">
                 <ListView x:Name="dgvMenu">
                     <ListView.HeaderTemplate>
                         <DataTemplate>
-                            <Grid ColumnDefinitions="*, 100, 80, 100, 60" Padding="12,10,12,10" Background="Black" CornerRadius="8,8,0,0">
+                            <Grid ColumnDefinitions="*, 100, 80, 100, 60" Padding="12,10,12,10" Background="Black">
                                 <TextBlock Grid.Column="0" Text="Producto" FontWeight="Bold" Foreground="White"/>
                                 <TextBlock Grid.Column="1" Text="Precio" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right"/>
                                 <TextBlock Grid.Column="2" Text="Cant" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
@@ -89,24 +85,20 @@
             </Border>
 
             <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="15" Margin="0,20,0,0">
-                <Button x:Name="btnNuevo" Grid.Column="0" Content="Nuevo Pedido" Click="btnNuevo_Click" HorizontalAlignment="Stretch" Height="50" FontSize="16"/>
-                <Button x:Name="btnGrabar" Grid.Column="1" Content="Finalizar y Cobrar" Click="btnGrabar_Click" HorizontalAlignment="Stretch" Height="50" FontSize="16" Background="DarkGreen" Foreground="White"/>
+                <Button x:Name="btnNuevo" Content="Nuevo Pedido" Click="btnNuevo_Click" HorizontalAlignment="Stretch" Height="50"/>
+                <Button x:Name="btnGrabar" Grid.Column="1" Content="Imprimir y Cobrar" Click="btnGrabar_Click" HorizontalAlignment="Stretch" Height="50" Background="DarkGreen" Foreground="White"/>
             </Grid>
 
             <StackPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,20,0,0" Width="300" Spacing="5">
                 <Grid ColumnDefinitions="*, *">
-                    <TextBlock Text="Subtotal:" FontSize="18"/>
-                    <TextBlock x:Name="txtSubtotal" Grid.Column="1" Text="$0.00" FontSize="18" HorizontalAlignment="Right"/>
+                    <TextBlock Text="Subtotal:"/>
+                    <TextBlock x:Name="txtSubtotal" Grid.Column="1" Text="$0.00" HorizontalAlignment="Right"/>
                 </Grid>
                 <Grid ColumnDefinitions="*, *">
-                    <TextBlock Text="IVA (16%):" FontSize="18"/>
-                    <TextBlock x:Name="txtIVA" Grid.Column="1" Text="$0.00" FontSize="18" HorizontalAlignment="Right"/>
+                    <TextBlock Text="IVA (16%):"/>
+                    <TextBlock x:Name="txtIVA" Grid.Column="1" Text="$0.00" HorizontalAlignment="Right"/>
                 </Grid>
-                <Border BorderBrush="Gray" BorderThickness="0,1,0,0" Margin="0,5"/>
-                <Grid ColumnDefinitions="*, *">
-                    <TextBlock Text="TOTAL:" FontSize="28" FontWeight="Bold" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
-                    <TextBlock x:Name="txtTotal" Grid.Column="1" Text="$0.00" FontSize="28" FontWeight="Bold" HorizontalAlignment="Right" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
-                </Grid>
+                <TextBlock x:Name="txtTotal" Text="TOTAL: $0.00" FontSize="28" FontWeight="Bold" HorizontalAlignment="Right" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
                 <TextBlock x:Name="lblPlato" Text="Plato Actual: 1" FontSize="14" Opacity="0.6" HorizontalAlignment="Right"/>
             </StackPanel>
         </Grid>
