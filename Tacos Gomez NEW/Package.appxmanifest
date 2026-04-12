@@ -9,11 +9,11 @@
   IgnorableNamespaces="uap rescap systemai">
 
   <Identity
-    Name="c1547844-9f33-4596-b8fc-b18d626b4714"
+    Name="9f661f43-d640-41e2-bd5e-caf5eda50901"
     Publisher="CN=axelr"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="c1547844-9f33-4596-b8fc-b18d626b4714" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="9f661f43-d640-41e2-bd5e-caf5eda50901" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>Tacos Gomez NEW</DisplayName>

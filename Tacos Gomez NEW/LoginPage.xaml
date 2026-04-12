@@ -1,0 +1,21 @@
+<Page
+    x:Class="Tacos_Gomez_NEW.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="40" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid RowDefinitions="Auto, *, Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
+            <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,30">
+                <TextBlock Text="🌮 Tacos Gomez" FontSize="42" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{ThemeResource SystemControlHighlightAccentBrush}"/>
+                <TextBlock Text="INICIAR SESIÓN" HorizontalAlignment="Center" Opacity="0.6" CharacterSpacing="200"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Spacing="20">
+                <TextBox x:Name="txtUsuario" Header="Usuario" PlaceholderText="Tu nombre de usuario"/>
+                <PasswordBox x:Name="txtPassword" Header="Contraseña" PlaceholderText="******"/>
+                <Button x:Name="btnLogin" Content="Entrar al Sistema" Click="btnLogin_Click" 
+                        HorizontalAlignment="Stretch" Height="45" Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

@@ -25,13 +25,16 @@
 
                 <NavigationViewItemHeader Content="Movimientos"/>
                 <NavigationViewItem x:Name="itemVentas" Content="Registrar Ventas" Icon="Tag" Tag="ventas"/>
+                <NavigationViewItem x:Name="itemConsultas" Content="Consultar Ventas" Icon="Find" Tag="consultas"/>
 
                 <NavigationViewItemHeader Content="Análisis"/>
                 <NavigationViewItem x:Name="itemReportes" Content="Reportes" Icon="FourBars" Tag="reportes"/>
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>
-                <NavigationViewItem Content="Salir" Icon="Back" Tag="salir"/>
+                <NavigationViewItem x:Name="itemLogout" Content="Cerrar Sesión" Icon="ContactPresence" Tag="logout"/>
+                <NavigationViewItemSeparator/>
+                <NavigationViewItem Content="Salir del Sistema" Icon="Back" Tag="salir"/>
             </NavigationView.FooterMenuItems>
 
             <Grid Padding="24">
