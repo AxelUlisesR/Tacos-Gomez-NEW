@@ -18,7 +18,7 @@ namespace Tacos_Gomez_NEW
             txtRolActual.Text = $"Sesión iniciada como: {UsuarioSesion.Rol}";
 
             // Restricciones de seguridad por Rol
-            if (UsuarioSesion.Rol == "Empleado")
+            if (UsuarioSesion.Rol != "Administrador")
             {
                 itemEmpleados.IsEnabled = false;
                 itemReportes.IsEnabled = false;
