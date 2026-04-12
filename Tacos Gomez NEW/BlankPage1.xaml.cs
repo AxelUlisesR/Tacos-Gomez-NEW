@@ -22,12 +22,23 @@ namespace Tacos_Gomez_NEW
             {
                 itemEmpleados.IsEnabled = false;
                 itemReportes.IsEnabled = false;
-                // Opcional: itemEmpleados.Visibility = Visibility.Collapsed;
+
+                // OCULTAR EL BOTÓN DE SETTINGS SI NO ES ADMIN
+                NavMenu.IsSettingsVisible = false;
             }
         }
 
         private async void NavMenu_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
+            // 1. CHECAMOS PRIMERO SI SE PRESIONÓ EL BOTÓN DE SETTINGS
+            if (args.IsSettingsInvoked)
+            {
+                WelcomePanel.Visibility = Visibility.Collapsed;
+                ContentFrame.Navigate(typeof(SettingsPage)); // Navega a tu página de Backups
+                return;
+            }
+
+            // 2. Lógica para el resto de los ítems con Tag
             if (args.InvokedItemContainer.Tag == null) return;
 
             var tag = args.InvokedItemContainer.Tag.ToString();
@@ -64,23 +75,17 @@ namespace Tacos_Gomez_NEW
                     break;
 
                 case "reportes":
-                    /* if (UsuarioSesion.Rol == "Administrador")
-                         ContentFrame.Navigate(typeof(ReportesPage));
-                     else
-                         await MostrarError("Acceso denegado a reportes.");
-                    */
+                    if (UsuarioSesion.Rol == "Administrador")
+                        ContentFrame.Navigate(typeof(GeneradorReportes));
+                    else
+                        await MostrarError("Acceso denegado a reportes.");
                     break;
 
                 case "logout":
-                    // 1. Limpiar datos globales de sesión
                     UsuarioSesion.Nombre = string.Empty;
                     UsuarioSesion.Rol = string.Empty;
-
-                    // 2. Navegar de vuelta a la pantalla de Login (Asegúrate de que se llame MainWindow o Login)
-                    // Usamos el Frame principal para salir del NavigationView
                     if (this.Frame != null)
                     {
-                        // Si tu página de inicio se llama MainWindow o LoginPage, cámbialo aquí:
                         this.Frame.Navigate(typeof(LoginPage));
                     }
                     break;
