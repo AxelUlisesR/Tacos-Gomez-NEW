@@ -2,110 +2,107 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Threading.Tasks;
+using Windows.System;
+using WinRT.Interop;
+using System.Runtime.InteropServices;
 
 namespace Tacos_Gomez_NEW
 {
     public sealed partial class BlankPage1 : Page
     {
+        // Importación de funciones de Windows para forzar el primer plano
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         public BlankPage1()
         {
             this.InitializeComponent();
+
+            // Detectar tecla F1 para ayuda contextual
+            this.KeyDown += (s, e) =>
+            {
+                if (e.Key == VirtualKey.F1)
+                {
+                    AbrirVentanaAyuda();
+                }
+            };
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // Mostramos el rol del usuario que viene del Login
             txtRolActual.Text = $"Sesión iniciada como: {UsuarioSesion.Rol}";
-
-            // Restricciones de seguridad por Rol
             if (UsuarioSesion.Rol != "Administrador")
             {
                 itemEmpleados.IsEnabled = false;
+                itemProductos.IsEnabled = false;
                 itemReportes.IsEnabled = false;
-
-                // OCULTAR EL BOTÓN DE SETTINGS SI NO ES ADMIN
                 NavMenu.IsSettingsVisible = false;
             }
         }
 
-        private async void NavMenu_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        private void NavMenu_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            // 1. CHECAMOS PRIMERO SI SE PRESIONÓ EL BOTÓN DE SETTINGS
             if (args.IsSettingsInvoked)
             {
                 WelcomePanel.Visibility = Visibility.Collapsed;
-                ContentFrame.Navigate(typeof(SettingsPage)); // Navega a tu página de Backups
+                ContentFrame.Navigate(typeof(SettingsPage));
                 return;
             }
 
-            // 2. Lógica para el resto de los ítems con Tag
-            if (args.InvokedItemContainer.Tag == null) return;
+            var item = args.InvokedItemContainer;
+            if (item == null || item.Tag == null) return;
 
-            var tag = args.InvokedItemContainer.Tag.ToString();
+            string tag = item.Tag.ToString();
 
-            // Ocultamos el mensaje de bienvenida al navegar
-            if (tag != "logout" && tag != "salir")
-            {
-                WelcomePanel.Visibility = Visibility.Collapsed;
-            }
+            // Si no es ayuda, cambiamos el contenido interno
+            if (tag != "ayuda") WelcomePanel.Visibility = Visibility.Collapsed;
 
             switch (tag)
             {
-                case "productos":
-                    ContentFrame.Navigate(typeof(ProductosPage));
-                    break;
-
-                case "empleados":
-                    if (UsuarioSesion.Rol == "Administrador")
-                        ContentFrame.Navigate(typeof(EmpleadosPage));
-                    else
-                        await MostrarError("Acceso denegado. Requiere permisos de Administrador.");
-                    break;
-
-                case "clientes":
-                    ContentFrame.Navigate(typeof(ClientesPage));
-                    break;
-
-                case "ventas":
-                    ContentFrame.Navigate(typeof(VentasPage));
-                    break;
-
-                case "consultas":
-                    ContentFrame.Navigate(typeof(ConsultaVentas));
-                    break;
-
+                case "productos": ContentFrame.Navigate(typeof(ProductosPage)); break;
+                case "empleados": ContentFrame.Navigate(typeof(EmpleadosPage)); break;
+                case "clientes": ContentFrame.Navigate(typeof(ClientesPage)); break;
+                case "ventas": ContentFrame.Navigate(typeof(VentasPage)); break;
+                case "consultas": ContentFrame.Navigate(typeof(ConsultaVentas)); break;
                 case "reportes":
-                    if (UsuarioSesion.Rol == "Administrador")
-                        ContentFrame.Navigate(typeof(GeneradorReportes));
-                    else
-                        await MostrarError("Acceso denegado a reportes.");
+                    if (UsuarioSesion.Rol == "Administrador") ContentFrame.Navigate(typeof(GeneradorReportes));
                     break;
-
+                case "ayuda":
+                    ContentFrame.Navigate(typeof(AyudaPage)); break;
+                    break;
                 case "logout":
-                    UsuarioSesion.Nombre = string.Empty;
-                    UsuarioSesion.Rol = string.Empty;
-                    if (this.Frame != null)
-                    {
-                        this.Frame.Navigate(typeof(LoginPage));
-                    }
+                    CerrarSesion();
                     break;
-
                 case "salir":
                     Application.Current.Exit();
                     break;
             }
         }
 
-        private async Task MostrarError(string mensaje)
+        private void AbrirVentanaAyuda()
         {
-            ContentDialog dialog = new ContentDialog
-            {
-                Title = "Seguridad del Sistema",
-                Content = mensaje,
-                CloseButtonText = "Entendido",
-                XamlRoot = this.XamlRoot
-            };
-            await dialog.ShowAsync();
+            // Creamos la nueva ventana
+            Window ventanaAyuda = new Window();
+            ventanaAyuda.Title = "Ayuda del Sistema - Tacos Gómez";
+
+            // Configuramos el contenido
+            Frame frameAyuda = new Frame();
+            frameAyuda.Navigate(typeof(AyudaPage));
+            ventanaAyuda.Content = frameAyuda;
+
+            // La activamos
+            ventanaAyuda.Activate();
+
+            // FORZAR PRIMER PLANO: Obtenemos el ID de ventana y la empujamos al frente
+            IntPtr handle = WindowNative.GetWindowHandle(ventanaAyuda);
+            SetForegroundWindow(handle);
+        }
+
+        private void CerrarSesion()
+        {
+            UsuarioSesion.Nombre = string.Empty;
+            UsuarioSesion.Rol = string.Empty;
+            this.Frame?.Navigate(typeof(LoginPage));
         }
     }
 }

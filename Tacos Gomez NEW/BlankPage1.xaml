@@ -4,14 +4,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Tacos_Gomez_NEW"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
     Loaded="Page_Loaded">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <NavigationView x:Name="NavMenu" 
-                        PaneTitle="Tacos Gomez"
+                        PaneTitle="Tacos Gómez"
                         IsBackButtonVisible="Collapsed"
                         ItemInvoked="NavMenu_ItemInvoked">
 
@@ -32,16 +29,18 @@
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>
-                <NavigationViewItem x:Name="itemLogout" Content="Cerrar Sesión" Icon="ContactPresence" Tag="logout"/>
+                <NavigationViewItem x:Name="itemAyuda" Content="Ayuda del Sistema" Icon="Help" Tag="ayuda"/>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Content="Salir del Sistema" Icon="Back" Tag="salir"/>
+                <NavigationViewItem x:Name="itemLogout" Content="Cerrar Sesión" Icon="ContactPresence" Tag="logout"/>
+                <NavigationViewItem x:Name="itemSalir" Content="Salir del Sistema" Icon="Back" Tag="salir"/>
             </NavigationView.FooterMenuItems>
 
             <Grid Padding="24">
                 <StackPanel x:Name="WelcomePanel" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
                     <TextBlock Text="🌮" FontSize="72" HorizontalAlignment="Center"/>
-                    <TextBlock Text="¡Bienvenido a Tacos Gomez!" FontSize="28" FontWeight="Bold"/>
+                    <TextBlock Text="¡Bienvenido a Tacos Gómez!" FontSize="28" FontWeight="Bold"/>
                     <TextBlock x:Name="txtRolActual" Opacity="0.6" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Presiona F1 para obtener ayuda en cualquier momento" FontSize="12" Opacity="0.5" HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <Frame x:Name="ContentFrame"/>

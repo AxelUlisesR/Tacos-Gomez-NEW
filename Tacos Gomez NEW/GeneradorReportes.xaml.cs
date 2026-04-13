@@ -29,7 +29,6 @@ namespace Tacos_Gomez_NEW
         private bool mostrarGrafica = false;
         private List<string> listaClientes = new List<string>();
 
-        // Paleta de colores manual para evitar errores de librerías
         private readonly SKColor[] misColores = new SKColor[]
         {
             SKColors.Crimson, SKColors.DodgerBlue, SKColors.LimeGreen,
@@ -84,15 +83,17 @@ namespace Tacos_Gomez_NEW
 
             string sql = cbReportes.SelectedIndex switch
             {
-                0 => "SELECT idorden, c.nombre as cliente, e.nombre as empleado, fecha, total FROM ordenes o JOIN clientes c USING(idcliente) JOIN empleados e USING(idempleado) WHERE fecha BETWEEN @f1 AND @f2",
+                0 => "SELECT idorden, c.nombre as cliente, e.nombre as empleado, fecha, total FROM ordenes o JOIN clientes c USING(idcliente) JOIN empleados e USING(idempleado) WHERE fecha BETWEEN @f1 AND @f2 ORDER BY idorden DESC",
                 1 => "SELECT p.nombre, SUM(d.cantidad) as cantidad_total FROM detordenes d JOIN productos p USING(idproducto) JOIN ordenes o USING(idorden) WHERE o.fecha BETWEEN @f1 AND @f2 GROUP BY p.nombre ORDER BY cantidad_total DESC LIMIT 10",
                 2 => "SELECT idorden, fecha, total, estado FROM ordenes WHERE fecha BETWEEN @f1 AND @f2",
-                3 => "SELECT to_char(fecha, 'YYYY-MM') as mes, SUM(total) as ingresos FROM ordenes GROUP BY mes ORDER BY mes DESC",
+                // REPORTE POR MES: Ahora filtra por el periodo seleccionado
+                3 => "SELECT to_char(fecha, 'YYYY-MM') as mes, SUM(total) as ingresos FROM ordenes WHERE fecha BETWEEN @f1 AND @f2 GROUP BY mes ORDER BY mes DESC",
                 4 => "SELECT c.nombre as cliente, COUNT(idorden) as visitas FROM ordenes o JOIN clientes c USING(idcliente) WHERE fecha BETWEEN @f1 AND @f2 GROUP BY c.nombre ORDER BY visitas DESC LIMIT 10",
                 5 => "SELECT e.nombre as empleado, SUM(o.total) as venta_total FROM ordenes o JOIN empleados e USING(idempleado) WHERE o.fecha BETWEEN @f1 AND @f2 GROUP BY e.nombre ORDER BY venta_total DESC LIMIT 10",
                 6 => "SELECT categoria, SUM(subtotal) as total FROM detordenes JOIN productos USING(idproducto) JOIN ordenes USING(idorden) WHERE fecha BETWEEN @f1 AND @f2 GROUP BY categoria",
                 7 => "SELECT o.fecha, e.nombre as empleado, o.total FROM ordenes o JOIN clientes c USING(idcliente) JOIN empleados e USING(idempleado) WHERE c.nombre = @cli AND o.fecha BETWEEN @f1 AND @f2 ORDER BY o.fecha DESC",
                 8 => "SELECT c.nombre as cliente, AVG(total) as promedio FROM ordenes JOIN clientes c USING(idcliente) WHERE fecha BETWEEN @f1 AND @f2 GROUP BY c.nombre ORDER BY promedio DESC LIMIT 10",
+                // EFICIENCIA: Ahora incluye 'P' como Pagada y 'R' como Registrada
                 9 => "SELECT CASE WHEN estado = 'P' THEN 'Pagada' WHEN estado = 'R' THEN 'Registrada' ELSE 'Otras/Bajas' END as est, COUNT(*) as cantidad FROM ordenes WHERE fecha BETWEEN @f1 AND @f2 GROUP BY est",
                 _ => ""
             };
@@ -215,10 +216,8 @@ namespace Tacos_Gomez_NEW
             {
                 string nombreArchivo = $"Reporte_{tituloActual.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 string ruta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), nombreArchivo);
-
                 using var wb = new XLWorkbook();
                 var ws = wb.Worksheets.Add("Datos");
-
                 int filaInicio = 1;
                 if (cbReportes.SelectedIndex == 7 && !string.IsNullOrEmpty(asbCliente.Text))
                 {
@@ -227,17 +226,11 @@ namespace Tacos_Gomez_NEW
                     ws.Cell(1, 1).Style.Font.FontSize = 14;
                     filaInicio = 3;
                 }
-
                 ws.Cell(filaInicio, 1).InsertTable(datosReporte);
                 for (int i = 0; i < datosReporte.Columns.Count; i++)
                     if (EsCampoDinero(datosReporte.Columns[i].ColumnName)) ws.Column(i + 1).Style.NumberFormat.Format = "$#,##0.00";
-
                 byte[] img = GetBytesDeGrafica();
-                if (img != null)
-                {
-                    using var ms = new MemoryStream(img);
-                    ws.AddPicture(ms).MoveTo(ws.Cell(datosReporte.Rows.Count + filaInicio + 2, 1)).Scale(0.6);
-                }
+                if (img != null) { using var ms = new MemoryStream(img); ws.AddPicture(ms).MoveTo(ws.Cell(datosReporte.Rows.Count + filaInicio + 2, 1)).Scale(0.6); }
                 wb.SaveAs(ruta);
                 await MostrarMensaje("Éxito", "Excel guardado en el escritorio.");
             }
@@ -254,7 +247,6 @@ namespace Tacos_Gomez_NEW
                 byte[] img = mostrarGrafica ? GetBytesDeGrafica() : null;
                 string nombreCli = asbCliente.Text;
                 bool esReporteCliente = cbReportes.SelectedIndex == 7;
-
                 Document.Create(c => {
                     c.Page(p => {
                         p.Margin(1, Unit.Centimetre);
@@ -264,7 +256,6 @@ namespace Tacos_Gomez_NEW
                                 headerCol.Item().PaddingTop(5).Text("CLIENTE: " + nombreCli).FontSize(14).Italic();
                             headerCol.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
                         });
-
                         p.Content().Column(col => {
                             col.Item().PaddingTop(10).Table(t => {
                                 t.ColumnsDefinition(cd => { for (int i = 0; i < datosReporte.Columns.Count; i++) cd.RelativeColumn(); });
@@ -294,16 +285,9 @@ namespace Tacos_Gomez_NEW
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value != null && double.TryParse(value.ToString(), out double dv))
-            {
-                return string.Format("${0:N2}", dv);
-            }
+            if (value != null && double.TryParse(value.ToString(), out double dv)) return string.Format("${0:N2}", dv);
             return value;
         }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new NotImplementedException();
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
     }
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Tacos_Gomez_NEW.AyudaPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Padding="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Spacing="10" Margin="0,0,15,0">
+            <TextBlock Text="Manual Técnico" FontSize="22" FontWeight="Bold" Margin="0,0,0,10"/>
+            <ListView x:Name="lvTemas" SelectionChanged="lvTemas_SelectionChanged" 
+                      Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8">
+                <ListViewItem Content="Ventas"/>
+                <ListViewItem Content="Productos"/>
+                <ListViewItem Content="Clientes"/>
+                <ListViewItem Content="Empleados"/>
+                <ListViewItem Content="Consultas"/>
+                <ListViewItem Content="Reportes"/>
+                <ListViewItem Content="Configuracion"/>
+            </ListView>
+        </StackPanel>
+
+        <Border Grid.Column="1" Background="{ThemeResource SystemControlBackgroundAltHighBrush}" 
+                CornerRadius="12" Padding="30" BorderBrush="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" BorderThickness="1">
+            <ScrollViewer>
+                <controls:MarkdownTextBlock x:Name="markdownViewer" TextWrapping="Wrap" FontSize="15"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Page>
