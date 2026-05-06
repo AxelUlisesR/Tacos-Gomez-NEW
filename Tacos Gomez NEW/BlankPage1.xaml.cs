@@ -63,6 +63,10 @@ namespace Tacos_Gomez_NEW
                 case "empleados": ContentFrame.Navigate(typeof(EmpleadosPage)); break;
                 case "clientes": ContentFrame.Navigate(typeof(ClientesPage)); break;
                 case "ventas": ContentFrame.Navigate(typeof(VentasPage)); break;
+                case "historicos":
+                    // Navega a la nueva página que crearemos a continuación
+                    ContentFrame.Navigate(typeof(ConsultaHistoricos));
+                    break;
                 case "consultas": ContentFrame.Navigate(typeof(ConsultaVentas)); break;
                 case "reportes":
                     if (UsuarioSesion.Rol == "Administrador") ContentFrame.Navigate(typeof(GeneradorReportes));
@@ -73,6 +77,7 @@ namespace Tacos_Gomez_NEW
                 case "logout":
                     CerrarSesion();
                     break;
+
                 case "salir":
                     Application.Current.Exit();
                     break;

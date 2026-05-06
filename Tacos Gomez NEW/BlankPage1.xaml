@@ -23,6 +23,7 @@
                 <NavigationViewItemHeader Content="Movimientos"/>
                 <NavigationViewItem x:Name="itemVentas" Content="Registrar Ventas" Icon="Tag" Tag="ventas"/>
                 <NavigationViewItem x:Name="itemConsultas" Content="Consultar Ventas" Icon="Find" Tag="consultas"/>
+                <NavigationViewItem x:Name="itemHistoricos" Content="Consulta Históricos" Icon="Bookmarks" Tag="historicos"/>
 
                 <NavigationViewItemHeader Content="Análisis"/>
                 <NavigationViewItem x:Name="itemReportes" Content="Reportes" Icon="FourBars" Tag="reportes"/>

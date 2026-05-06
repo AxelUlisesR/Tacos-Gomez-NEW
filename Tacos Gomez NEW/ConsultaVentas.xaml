@@ -17,17 +17,23 @@
                 <AutoSuggestBox x:Name="asbBusqueda" PlaceholderText="Folio o nombre del cliente..." Width="350" QueryIcon="Find"
                                 TextChanged="asbBusqueda_TextChanged" QuerySubmitted="asbBusqueda_QuerySubmitted" SuggestionChosen="asbBusqueda_SuggestionChosen"/>
                 <Button Content="Refrescar" Click="btnRefrescar_Click"/>
+                <Button x:Name="btnHistorico" Content="Mover a Históricos" Click="btnHistorico_Click" 
+                        Background="DarkRed" Foreground="White" Padding="15,5"/>
             </StackPanel>
 
             <ListView x:Name="lvVentas" Grid.Row="2" SelectionChanged="lvVentas_SelectionChanged"
                       Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:VentaItem">
-                        <Grid Padding="12" ColumnDefinitions="60, *, 100">
+                        <Grid Padding="12" ColumnDefinitions="60, *, 120">
                             <TextBlock Grid.Column="0" Text="{x:Bind Id}" FontWeight="Bold" VerticalAlignment="Center" Foreground="SteelBlue" FontSize="16"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind Cliente}" FontWeight="SemiBold" FontSize="15"/>
-                                <TextBlock Text="{x:Bind Estado}" FontSize="12" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind Estado}" FontSize="12" Opacity="0.8"/>
+                                    <TextBlock Text="•" FontSize="12" Opacity="0.5"/>
+                                    <TextBlock Text="{x:Bind FechaStr}" FontSize="12" Opacity="0.6"/>
+                                </StackPanel>
                             </StackPanel>
                             <TextBlock Grid.Column="2" Text="{x:Bind TotalStr}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" Foreground="DarkSeaGreen" FontSize="16"/>
                         </Grid>
@@ -49,6 +55,11 @@
                             <SymbolIcon Symbol="Contact" Foreground="Gray"/>
                             <TextBlock Text="Cliente:" FontWeight="SemiBold" Width="70"/>
                             <TextBlock x:Name="txtDetalleCliente" Text="---" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <SymbolIcon Symbol="Calendar" Foreground="Gray"/>
+                            <TextBlock Text="Fecha:" FontWeight="SemiBold" Width="70"/>
+                            <TextBlock x:Name="txtDetalleFecha" Text="---"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <SymbolIcon Symbol="People" Foreground="Gray"/>
@@ -92,7 +103,7 @@
                         <ComboBoxItem Content="Cancelada"/>
                     </ComboBox>
 
-                    <TextBlock x:Name="txtEstadoAviso" Text="⚠ Orden finalizada, no se permiten cambios." Foreground="Firebrick" FontSize="12" FontWeight="SemiBold" Visibility="Collapsed"/>
+                    <TextBlock x:Name="txtEstadoAviso" Text="⚠ Orden finalizada, no se permiten cambios." Foreground="Firebrick" FontSize="12" FontWeight="Bold" Visibility="Collapsed"/>
                     <Button x:Name="btnActualizarEstado" Content="Guardar Cambios" Click="btnActualizarEstado_Click" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" Height="40"/>
                 </StackPanel>
             </ScrollViewer>

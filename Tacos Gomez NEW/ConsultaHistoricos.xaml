@@ -1,0 +1,95 @@
+<Page
+    x:Class="Tacos_Gomez_NEW.ConsultaHistoricos"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Tacos_Gomez_NEW">
+
+    <Grid Padding="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.8*"/>
+            <ColumnDefinition Width="1.2*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- LADO IZQUIERDO: LISTA DE ARCHIVOS -->
+        <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *" Margin="0,0,15,0">
+            <TextBlock Grid.Row="0" Text="Archivo Histórico de Ventas" FontSize="26" FontWeight="Bold" Margin="0,0,0,15" Foreground="Gray"/>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,0,0,20">
+                <AutoSuggestBox x:Name="asbBusqueda" PlaceholderText="Buscar folio en histórico..." Width="350" QueryIcon="Find"
+                                TextChanged="asbBusqueda_TextChanged" QuerySubmitted="asbBusqueda_QuerySubmitted" SuggestionChosen="asbBusqueda_SuggestionChosen"/>
+                <Button Content="Refrescar" Click="btnRefrescar_Click"/>
+            </StackPanel>
+
+            <ListView x:Name="lvVentas" Grid.Row="2" SelectionChanged="lvVentas_SelectionChanged"
+                      Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="local:VentaHistoricaItem">
+                        <Grid Padding="12" ColumnDefinitions="60, *, 120">
+                            <TextBlock Grid.Column="0" Text="{x:Bind Id}" FontWeight="Bold" VerticalAlignment="Center" Opacity="0.6" FontSize="16"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind Cliente}" FontWeight="SemiBold" FontSize="15"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind Estado}" FontSize="12" Opacity="0.8"/>
+                                    <TextBlock Text="•" FontSize="12" Opacity="0.5"/>
+                                    <TextBlock Text="{x:Bind FechaStr}" FontSize="12" Opacity="0.6"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{x:Bind TotalStr}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" FontSize="16"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+        <!-- LADO DERECHO: DETALLES DEL ARCHIVO -->
+        <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <ScrollViewer>
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Detalles del Archivo" FontSize="22" FontWeight="Bold"/>
+
+                    <StackPanel Spacing="5" Padding="10" Background="{ThemeResource SystemControlBackgroundAltHighBrush}" CornerRadius="4">
+                        <TextBlock Text="FOLIO DE ARCHIVO:" FontSize="12" Opacity="0.5"/>
+                        <TextBlock x:Name="txtDetalleFolio" Text="---" FontSize="28" FontWeight="Bold" Foreground="Gray"/>
+
+                        <TextBlock Text="FECHA DE CIERRE:" FontSize="12" Opacity="0.5" Margin="0,10,0,0"/>
+                        <TextBlock x:Name="txtDetalleFecha" Text="---" FontWeight="SemiBold"/>
+
+                        <TextBlock Text="CLIENTE:" FontSize="12" Opacity="0.5" Margin="0,10,0,0"/>
+                        <TextBlock x:Name="txtDetalleCliente" Text="---" FontWeight="SemiBold"/>
+
+                        <TextBlock Text="ESTADO FINAL:" FontSize="12" Opacity="0.5" Margin="0,10,0,0"/>
+                        <TextBlock x:Name="txtEstadoFinal" Text="---" FontWeight="Bold"/>
+                    </StackPanel>
+
+                    <ListView x:Name="lvDetalle" Height="250" SelectionMode="None">
+                        <ListView.Header>
+                            <Grid ColumnDefinitions="*, Auto, Auto" Margin="0,0,15,10">
+                                <TextBlock Grid.Column="0" Text="Producto" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="1" Text="Cant." FontSize="12" FontWeight="Bold" Margin="15,0"/>
+                                <TextBlock Grid.Column="2" Text="Subtotal" FontSize="12" FontWeight="Bold"/>
+                            </Grid>
+                        </ListView.Header>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:DetalleItem">
+                                <Grid ColumnDefinitions="*, Auto, Auto" Padding="0,5">
+                                    <TextBlock Grid.Column="0" Text="{x:Bind Producto}" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Cantidad}" Margin="15,0" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{x:Bind SubtotalStr}" FontWeight="SemiBold"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0" Padding="0,10,0,0">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="TOTAL CERRADO:" FontWeight="Bold" FontSize="18"/>
+                            <TextBlock Grid.Column="1" x:Name="txtDetalleTotal" Text="$0.00" FontSize="20" FontWeight="Bold" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Border>
+
+                    <InfoBar Title="Registro Histórico" Message="Este documento es informativo y no puede ser modificado." IsOpen="True" Severity="Informational"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Page>

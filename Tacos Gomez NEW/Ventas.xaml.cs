@@ -15,6 +15,10 @@ using QuestPDF.Infrastructure;
 
 namespace Tacos_Gomez_NEW
 {
+    // ============================================================
+    // MODELOS DE DATOS (FUERA DE LAS CLASES PARA EVITAR ERRORES XAML)
+    // ============================================================
+
     public class DetalleVenta
     {
         public string Nombre { get; set; }
@@ -25,6 +29,32 @@ namespace Tacos_Gomez_NEW
         public string PrecioFormateado => Precio.ToString("C2");
         public string ImporteFormateado => Importe.ToString("C2");
     }
+
+    public class VentaItem
+    {
+        public int Id { get; set; }
+        public string Cliente { get; set; }
+        public string Vendedor { get; set; }
+        public string Estado { get; set; }
+        public double Total { get; set; }
+        public DateTime Fecha { get; set; }
+        public string TotalStr => Total.ToString("C2");
+
+        // Formato de 12 horas con am/pm local
+        public string FechaStr => Fecha.ToString("dd/MM/yyyy hh:mm tt");
+    }
+
+    public class DetalleItem
+    {
+        public string Producto { get; set; }
+        public int Cantidad { get; set; }
+        public double Subtotal { get; set; }
+        public string SubtotalStr => Subtotal.ToString("C2");
+    }
+
+    // ============================================================
+    // LÓGICA DE LA PÁGINA DE VENTAS
+    // ============================================================
 
     public sealed partial class VentasPage : Page
     {
@@ -51,17 +81,22 @@ namespace Tacos_Gomez_NEW
             {
                 using var conn = new NpgsqlConnection(cadena); await conn.OpenAsync();
                 cbEmpleado.Items.Clear(); cboProducto.Items.Clear(); listaClientes.Clear();
+
                 using (var cmd = new NpgsqlCommand("SELECT nombre FROM clientes ORDER BY nombre", conn))
                 using (var dr = await cmd.ExecuteReaderAsync()) while (await dr.ReadAsync()) listaClientes.Add(dr.GetString(0));
+
                 using (var cmd = new NpgsqlCommand("SELECT nombre FROM empleados ORDER BY nombre", conn))
                 using (var dr = await cmd.ExecuteReaderAsync()) while (await dr.ReadAsync()) cbEmpleado.Items.Add(dr.GetString(0));
+
                 using (var cmd = new NpgsqlCommand("SELECT nombre FROM productos ORDER BY nombre", conn))
                 using (var dr = await cmd.ExecuteReaderAsync()) while (await dr.ReadAsync()) cboProducto.Items.Add(dr.GetString(0));
+
                 EstadoInicial();
             }
             catch (Exception ex) { _ = MostrarMensaje("Error DB", ex.Message); }
         }
 
+        // --- BÚSQUEDA ---
         private void asbCliente_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
@@ -104,6 +139,7 @@ namespace Tacos_Gomez_NEW
             nbPrecio.Value = Convert.ToDouble(await cmd.ExecuteScalarAsync());
         }
 
+        // --- CARRITO ---
         private void cmdAceptar_Click(object sender, RoutedEventArgs e)
         {
             if (cboProducto.SelectedItem == null || nbCantidad.Value < 1) return;
@@ -127,6 +163,7 @@ namespace Tacos_Gomez_NEW
             txtTotal.Text = "TOTAL: " + totalValue.ToString("C2");
         }
 
+        // --- GUARDADO (CON FIX DE HORA PM) ---
         private async void btnGrabar_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(asbCliente.Text) || cbEmpleado.SelectedItem == null || ListaMenu.Count == 0) return;
@@ -134,18 +171,30 @@ namespace Tacos_Gomez_NEW
             {
                 using var conn = new NpgsqlConnection(cadena); await conn.OpenAsync();
                 using var trans = await conn.BeginTransactionAsync();
+
                 int idC, idE;
                 using (var cmd = new NpgsqlCommand("SELECT idcliente FROM clientes WHERE nombre=@n", conn)) { cmd.Parameters.AddWithValue("n", asbCliente.Text); idC = (int)await cmd.ExecuteScalarAsync(); }
                 using (var cmd = new NpgsqlCommand("SELECT idempleado FROM empleados WHERE nombre=@n", conn)) { cmd.Parameters.AddWithValue("n", cbEmpleado.SelectedItem.ToString()); idE = (int)await cmd.ExecuteScalarAsync(); }
 
                 int idO;
-                using (var cmd = new NpgsqlCommand("INSERT INTO ordenes (idcliente, idempleado, fecha, total, estado) VALUES (@c,@e,CURRENT_DATE,@t,'R') RETURNING idorden", conn))
-                { cmd.Parameters.AddWithValue("c", idC); cmd.Parameters.AddWithValue("e", idE); cmd.Parameters.AddWithValue("t", totalValue); idO = (int)await cmd.ExecuteScalarAsync(); }
+                // SOLUCIÓN: Usamos un parámetro @fec para mandar DateTime.Now desde C#
+                string sqlOrden = "INSERT INTO ordenes (idcliente, idempleado, fecha, total, estado) VALUES (@c, @e, @fec, @t, 'R') RETURNING idorden";
+
+                using (var cmd = new NpgsqlCommand(sqlOrden, conn))
+                {
+                    cmd.Parameters.AddWithValue("c", idC);
+                    cmd.Parameters.AddWithValue("e", idE);
+                    cmd.Parameters.AddWithValue("fec", DateTime.Now); // Mandamos la hora de la computadora
+                    cmd.Parameters.AddWithValue("t", totalValue);
+                    idO = (int)await cmd.ExecuteScalarAsync();
+                }
 
                 foreach (var d in ListaMenu)
                 {
                     using var cmd = new NpgsqlCommand("INSERT INTO detordenes (idorden, idproducto, cantidad, subtotal, plato) VALUES (@o, (SELECT idproducto FROM productos WHERE nombre=@np LIMIT 1), @can, @sub, @pla)", conn);
-                    cmd.Parameters.AddWithValue("o", idO); cmd.Parameters.AddWithValue("np", d.Nombre); cmd.Parameters.AddWithValue("can", d.Cantidad); cmd.Parameters.AddWithValue("sub", d.Importe); cmd.Parameters.AddWithValue("pla", d.NoPlato);
+                    cmd.Parameters.AddWithValue("o", idO); cmd.Parameters.AddWithValue("np", d.Nombre);
+                    cmd.Parameters.AddWithValue("can", d.Cantidad); cmd.Parameters.AddWithValue("sub", d.Importe);
+                    cmd.Parameters.AddWithValue("pla", d.NoPlato);
                     await cmd.ExecuteNonQueryAsync();
                 }
                 await trans.CommitAsync();
@@ -156,68 +205,7 @@ namespace Tacos_Gomez_NEW
             catch (Exception ex) { _ = MostrarMensaje("Error", ex.Message); }
         }
 
-        private void ImprimirTicketFinal(int folio, string cli, string emp, string dir, string num, string tel)
-        {
-            try
-            {
-                string path = Path.Combine(Path.GetTempPath(), $"Ticket_{folio}.pdf");
-                string dirFull = $"{dir} #{num}";
-                var items = ListaMenu.ToList();
-                double subT = subtotalValue;
-                double ivaT = ivaValue;
-                double totalT = totalValue;
-
-                Document.Create(container => {
-                    container.Page(page => {
-                        // AQUÍ ESTÁ EL TRUCO: Solo definimos el ancho (226pt), la altura se adapta sola
-                        page.ContinuousSize(226, Unit.Point);
-                        page.Margin(10);
-                        page.DefaultTextStyle(x => x.FontSize(9).FontFamily(Fonts.CourierNew));
-
-                        page.Content().Column(col => {
-                            // Encabezado
-                            col.Item().AlignCenter().Text("TACOS GÓMEZ").FontSize(14).SemiBold();
-                            col.Item().AlignCenter().Text("SAYULA, JALISCO");
-                            col.Item().PaddingVertical(5).LineHorizontal(1);
-                            col.Item().Text($"Folio: {folio}");
-                            col.Item().Text($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}");
-                            col.Item().PaddingVertical(2);
-                            col.Item().Text("CLIENTE:").SemiBold();
-                            col.Item().Text(cli);
-                            col.Item().Text($"Dir: {dirFull}");
-                            col.Item().Text($"Tel: {tel}");
-                            col.Item().PaddingVertical(2);
-                            col.Item().Text($"Atendió: {emp}");
-                            col.Item().PaddingVertical(5).LineHorizontal(1);
-
-                            // Tabla de productos
-                            col.Item().Table(table => {
-                                table.ColumnsDefinition(columns => { columns.ConstantColumn(20); columns.RelativeColumn(); columns.ConstantColumn(50); });
-                                foreach (var item in items)
-                                {
-                                    table.Cell().Text(item.Cantidad.ToString());
-                                    table.Cell().Text(item.Nombre);
-                                    table.Cell().AlignRight().Text(item.Importe.ToString("N2"));
-                                }
-                            });
-
-                            // Totales
-                            col.Item().PaddingTop(10).LineHorizontal(1);
-                            col.Item().AlignRight().Text($"Subtotal: {subT:C2}");
-                            col.Item().AlignRight().Text($"IVA (16%): {ivaT:C2}");
-                            col.Item().AlignRight().Text($"TOTAL: {totalT:C2}").FontSize(11).SemiBold();
-                            col.Item().PaddingTop(10).AlignCenter().Text("¡GRACIAS POR SU PREFERENCIA!");
-                        });
-                    });
-                }).GeneratePdf(path);
-
-                var psi = new ProcessStartInfo(path) { UseShellExecute = true };
-                try { psi.Verb = "print"; Process.Start(psi); }
-                catch { psi.Verb = ""; Process.Start(psi); }
-            }
-            catch (Exception ex) { _ = MostrarMensaje("Error Ticket", ex.Message); }
-        }
-
+        // --- OTROS ---
         private void EstadoInicial()
         {
             asbCliente.IsEnabled = cbEmpleado.IsEnabled = cboProducto.IsEnabled = nbCantidad.IsEnabled = cmdAceptar.IsEnabled = btnGrabar.IsEnabled = false;
@@ -225,6 +213,7 @@ namespace Tacos_Gomez_NEW
             txtSubtotal.Text = txtIVA.Text = "$0.00"; txtTotal.Text = "TOTAL: $0.00";
             asbCliente.Text = txtDireccion.Text = txtRol.Text = txtTelefono.Text = txtNumCasa.Text = "";
             lblPlato.Text = "Plato Actual: 1";
+            txtId.Text = "ID: 0";
         }
 
         private async void btnNuevo_Click(object sender, RoutedEventArgs e)
@@ -244,6 +233,61 @@ namespace Tacos_Gomez_NEW
         {
             ContentDialog d = new ContentDialog { Title = t, Content = c, CloseButtonText = "OK", XamlRoot = this.XamlRoot };
             await d.ShowAsync();
+        }
+
+        private void ImprimirTicketFinal(int folio, string cli, string emp, string dir, string num, string tel)
+        {
+            try
+            {
+                string path = Path.Combine(Path.GetTempPath(), $"Ticket_{folio}.pdf");
+                string dirFull = $"{dir} #{num}";
+                var items = ListaMenu.ToList();
+                double subT = subtotalValue; double ivaT = ivaValue; double totalT = totalValue;
+
+                Document.Create(container => {
+                    container.Page(page => {
+                        page.ContinuousSize(226, Unit.Point);
+                        page.Margin(10);
+                        page.DefaultTextStyle(x => x.FontSize(9).FontFamily(Fonts.CourierNew));
+                        page.Content().Column(col => {
+                            col.Item().AlignCenter().Text("TACOS GÓMEZ").FontSize(14).SemiBold();
+                            col.Item().AlignCenter().Text("SAYULA, JALISCO");
+                            col.Item().PaddingVertical(5).LineHorizontal(1);
+                            col.Item().Text($"Folio: {folio}");
+                            col.Item().Text($"Fecha: {DateTime.Now:dd/MM/yyyy hh:mm tt}");
+                            col.Item().PaddingVertical(2);
+                            col.Item().Text("CLIENTE:").SemiBold();
+                            col.Item().Text(cli);
+                            col.Item().Text($"Dir: {dirFull}");
+                            col.Item().Text($"Tel: {tel}");
+                            col.Item().PaddingVertical(2);
+                            col.Item().Text($"Atendió: {emp}");
+                            col.Item().PaddingVertical(5).LineHorizontal(1);
+
+                            col.Item().Table(table => {
+                                table.ColumnsDefinition(columns => { columns.ConstantColumn(20); columns.RelativeColumn(); columns.ConstantColumn(50); });
+                                foreach (var item in items)
+                                {
+                                    table.Cell().Text(item.Cantidad.ToString());
+                                    table.Cell().Text(item.Nombre);
+                                    table.Cell().AlignRight().Text(item.Importe.ToString("N2"));
+                                }
+                            });
+
+                            col.Item().PaddingTop(10).LineHorizontal(1);
+                            col.Item().AlignRight().Text($"Subtotal: {subT:C2}");
+                            col.Item().AlignRight().Text($"IVA (16%): {ivaT:C2}");
+                            col.Item().AlignRight().Text($"TOTAL: {totalT:C2}").FontSize(11).SemiBold();
+                            col.Item().PaddingTop(10).AlignCenter().Text("¡GRACIAS POR SU PREFERENCIA!");
+                        });
+                    });
+                }).GeneratePdf(path);
+
+                var psi = new ProcessStartInfo(path) { UseShellExecute = true };
+                try { psi.Verb = "print"; Process.Start(psi); }
+                catch { psi.Verb = ""; Process.Start(psi); }
+            }
+            catch { }
         }
     }
 }

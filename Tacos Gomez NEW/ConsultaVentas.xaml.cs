@@ -8,23 +8,8 @@ using Npgsql;
 
 namespace Tacos_Gomez_NEW
 {
-    public class VentaItem
-    {
-        public int Id { get; set; }
-        public string Cliente { get; set; }
-        public string Vendedor { get; set; }
-        public string Estado { get; set; }
-        public double Total { get; set; }
-        public string TotalStr => Total.ToString("C2");
-    }
-
-    public class DetalleItem
-    {
-        public string Producto { get; set; }
-        public int Cantidad { get; set; }
-        public double Subtotal { get; set; }
-        public string SubtotalStr => Subtotal.ToString("C2");
-    }
+    // CLASES MOVIDAS AFUERA PARA EVITAR ERRORES DE XAML
+   
 
     public sealed partial class ConsultaVentas : Page
     {
@@ -55,7 +40,8 @@ namespace Tacos_Gomez_NEW
                 txtDetalleFolio.Text = v.Id.ToString();
                 txtDetalleCliente.Text = v.Cliente;
                 txtDetalleVendedor.Text = v.Vendedor;
-                txtDetalleTotal.Text = v.TotalStr; // Mostramos el total de la orden seleccionada
+                txtDetalleTotal.Text = v.TotalStr;
+                txtDetalleFecha.Text = v.FechaStr; // Mostrar fecha en detalle[cite: 2]
 
                 await CargarDetalle(v.Id);
 
@@ -90,6 +76,54 @@ namespace Tacos_Gomez_NEW
             }
         }
 
+        private async void btnHistorico_Click(object sender, RoutedEventArgs e)
+        {
+            ContentDialog confirmar = new ContentDialog
+            {
+                Title = "Mover a Históricos",
+                Content = "¿Desea mover todas las órdenes PAGADAS y CANCELADAS a la base histórica?",
+                PrimaryButtonText = "Mover",
+                CloseButtonText = "Cancelar",
+                XamlRoot = this.XamlRoot
+            };
+
+            if (await confirmar.ShowAsync() != ContentDialogResult.Primary) return;
+
+            try
+            {
+                using var conn = new NpgsqlConnection(cadena);
+                await conn.OpenAsync();
+                using var trans = await conn.BeginTransactionAsync();
+                try
+                {
+                    // 1. Mover detalles
+                    using var cmdDet = new NpgsqlCommand(@"INSERT INTO hist_detordenes 
+                        SELECT d.* FROM detordenes d JOIN ordenes o ON d.idorden = o.idorden 
+                        WHERE o.estado IN ('P', 'C')", conn);
+                    await cmdDet.ExecuteNonQueryAsync();
+
+                    // 2. Mover órdenes
+                    using var cmdOrd = new NpgsqlCommand(@"INSERT INTO hist_ordenes 
+                        SELECT * FROM ordenes WHERE estado IN ('P', 'C')", conn);
+                    await cmdOrd.ExecuteNonQueryAsync();
+
+                    // 3. Eliminar
+                    using var cmdDelDet = new NpgsqlCommand(@"DELETE FROM detordenes WHERE idorden IN 
+                        (SELECT idorden FROM ordenes WHERE estado IN ('P', 'C'))", conn);
+                    await cmdDelDet.ExecuteNonQueryAsync();
+
+                    using var cmdDelOrd = new NpgsqlCommand("DELETE FROM ordenes WHERE estado IN ('P', 'C')", conn);
+                    await cmdDelOrd.ExecuteNonQueryAsync();
+
+                    await trans.CommitAsync();
+                    CargarVentas();
+                    await MostrarMensaje("Éxito", "Archivado correctamente.");
+                }
+                catch { await trans.RollbackAsync(); throw; }
+            }
+            catch (Exception ex) { await MostrarMensaje("Error", ex.Message); }
+        }
+
         private async void CargarVentas(string filtro = "")
         {
             try
@@ -97,7 +131,8 @@ namespace Tacos_Gomez_NEW
                 ListaVentas.Clear();
                 using var conn = new NpgsqlConnection(cadena);
                 await conn.OpenAsync();
-                string sql = @"SELECT o.idorden, c.nombre, e.nombre, o.estado, o.total 
+                // SQL incluyendo o.fecha[cite: 2]
+                string sql = @"SELECT o.idorden, c.nombre, e.nombre, o.estado, o.total, o.fecha 
                                FROM ordenes o 
                                JOIN clientes c ON o.idcliente = c.idcliente
                                JOIN empleados e ON o.idempleado = e.idempleado";
@@ -120,14 +155,14 @@ namespace Tacos_Gomez_NEW
                 while (await dr.ReadAsync())
                 {
                     string est = dr.GetString(3);
-                    string estTxt = (est == "R" || est == "A") ? "Activa" : (est == "P" ? "Pagada" : "Cancelada");
                     ListaVentas.Add(new VentaItem
                     {
                         Id = dr.GetInt32(0),
                         Cliente = dr.GetString(1),
                         Vendedor = dr.GetString(2),
-                        Estado = estTxt,
-                        Total = dr.GetDouble(4)
+                        Estado = (est == "R" || est == "A") ? "Activa" : (est == "P" ? "Pagada" : "Cancelada"),
+                        Total = dr.GetDouble(4),
+                        Fecha = dr.GetDateTime(5) // Carga de fecha[cite: 2]
                     });
                 }
             }
@@ -147,6 +182,11 @@ namespace Tacos_Gomez_NEW
             using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
                 ListaDetalle.Add(new DetalleItem { Producto = dr.GetString(0), Cantidad = dr.GetInt32(1), Subtotal = dr.GetDouble(2) });
+        }
+
+        private async Task MostrarMensaje(string t, string c)
+        {
+            await new ContentDialog { Title = t, Content = c, CloseButtonText = "OK", XamlRoot = this.XamlRoot }.ShowAsync();
         }
 
         private async void asbBusqueda_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

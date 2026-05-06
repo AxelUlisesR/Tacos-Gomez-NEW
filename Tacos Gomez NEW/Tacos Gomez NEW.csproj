@@ -83,6 +83,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="ConsultaHistoricos.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

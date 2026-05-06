@@ -15,7 +15,7 @@
             <TextBox x:Name="txtNombre" Header="Nombre del Producto" PlaceholderText="Ej. Taco de Pastor" MaxLength="60"/>
 
             <NumberBox x:Name="nbPrecio" Header="Precio ($)" 
-                       PlaceholderText="0.00" 
+                       PlaceholderText="0.00"  
                        SmallChange="1" 
                        Value="0"
                        SpinButtonPlacementMode="Inline"/>
